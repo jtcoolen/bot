@@ -364,7 +364,7 @@ let pr_id_of_resp ~owner ~repo ~number resp =
   | Some repository -> (
     match repository#pullRequest with
     | None ->
-        Error (f "Issue %d does not exist." number)
+        Error (f "Pull request %d does not exist." number)
     | Some pr ->
         Ok pr#id )
 
@@ -373,6 +373,27 @@ let get_pr_id ~owner ~repo ~number ~token =
   |> send_graphql_query ~token
   >|= Result.map_error ~f:(fun err -> f "Query get_pr_id failed with %s" err)
   >|= Result.bind ~f:(pr_id_of_resp ~owner ~repo ~number)
+
+let milestone_id_of_resp ~owner ~repo ~number resp =
+  match resp#repository with
+  | None ->
+      Error (f "Unknown repository %s/%s." owner repo)
+  | Some repository -> (
+    match repository#pullRequest with
+    | None ->
+        Error (f "Pull request %d does not exist." number)
+    | Some pr -> (
+      match pr#milestone with
+      | None ->
+          Error "No milestone for this pull request."
+      | Some milestone ->
+          Ok milestone#id ) )
+
+let get_milestone_id ~owner ~repo ~number ~token =
+  GetMilestoneIDfromPR.make ~owner ~repo ~number ()
+  |> send_graphql_query ~token
+  >|= Result.map_error ~f:(fun err -> f "Query get_pr_id failed with %s" err)
+  >|= Result.bind ~f:(milestone_id_of_resp ~owner ~repo ~number)
 
 (* TODO: use GraphQL API *)
 

@@ -1,6 +1,5 @@
 open Base
 open GitHub_GraphQL
-open Cohttp_lwt_unix
 open Lwt
 open Utils
 
@@ -86,23 +85,42 @@ let remove_rebase_label (issue_info : GitHub_subscriptions.issue_info) ~token =
           print_endline (f "Error while removing rebase label: %s" err) )
 
 let update_milestone new_milestone (issue : GitHub_subscriptions.issue) ~token =
-  let github_header = [("Authorization", "bearer " ^ token)] in
-  let headers = headers github_header in
-  let uri =
-    f "https://api.github.com/repos/%s/%s/issues/%d" issue.owner issue.repo
-      issue.number
-    |> (fun url ->
-         Stdio.printf "URL: %s\n" url ;
-         url)
-    |> Uri.of_string
-  in
-  let body =
-    "{\"milestone\": " ^ new_milestone ^ "}" |> Cohttp_lwt.Body.of_string
-  in
-  Lwt_io.printf "Sending patch request.\n"
-  >>= fun () -> Client.patch ~headers ~body uri >>= print_response
+  GitHub_queries.get_pr_id ~owner:issue.owner ~repo:issue.repo
+    ~number:issue.number ~token
+  >>= function
+  | Error e ->
+      Lwt_io.printf "Error while retrieving pull request id: %s" e
+  | Ok pr_id -> (
+      GitHub_queries.get_milestone_id ~owner:issue.owner ~repo:issue.repo
+        ~number:(int_of_string new_milestone)
+        ~token
+      >>= function
+      | Error e ->
+          Lwt_io.printf "Error while retrieving milestone id: %s" e
+      | Ok milestone_id -> (
+          UpdateMilestoneFromPR.make ~pullRequestId:pr_id
+            ~milestoneId:milestone_id ()
+          |> GitHub_queries.send_graphql_query ~token
+          >|= function
+          | Ok _ ->
+              ()
+          | Error err ->
+              print_endline (f "Error while updating milestone: %s" err) ) )
 
-let remove_milestone = update_milestone "null"
+let remove_milestone (issue : GitHub_subscriptions.issue) ~token =
+  GitHub_queries.get_pr_id ~owner:issue.owner ~repo:issue.repo
+    ~number:issue.number ~token
+  >>= function
+  | Error e ->
+      Lwt_io.printf "Error while retrieving pull request id: %s" e
+  | Ok pr_id -> (
+      RemoveMilestoneFromPR.make ~pullRequestId:pr_id ()
+      |> GitHub_queries.send_graphql_query ~token
+      >|= function
+      | Ok _ ->
+          ()
+      | Error err ->
+          print_endline (f "Error while updating milestone: %s" err) )
 
 let send_status_check ~repo_full_name ~commit ~state ~url ~context ~description
     ~token =

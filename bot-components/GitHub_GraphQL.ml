@@ -153,6 +153,20 @@ module GetPullRequestID =
   }
 |}]
 
+module GetMilestoneIDfromPR =
+[%graphql
+{|
+  query getMilestoneIDfromPR($owner: String!, $repo: String!, $number: Int!) {
+    repository(owner: $owner, name: $repo) {
+      pullRequest(number: $number) {
+        milestone {
+          id
+        }
+      }
+    }
+  }
+|}]
+
 (* Mutations *)
 
 module MoveCardToColumn =
@@ -212,6 +226,30 @@ module RemoveLabel =
             name
           }
         }
+      }
+    }
+  }
+|}]
+
+module UpdateMilestoneFromPR =
+[%graphql
+{|
+  mutation updateMilestoneFromPR($pullRequestId: ID!, $milestoneId: ID!) {
+    updatePullRequest(input: {pullRequestId: $pullRequestId, milestoneId: $milestoneId}) {
+      pullRequest {
+        id
+      }
+    }
+  }
+|}]
+
+module RemoveMilestoneFromPR =
+[%graphql
+{|
+  mutation removeMilestoneFromPR($pullRequestId: ID!) {
+    updatePullRequest(input: {pullRequestId: $pullRequestId, milestoneId: null}) {
+      pullRequest {
+        id
       }
     }
   }
