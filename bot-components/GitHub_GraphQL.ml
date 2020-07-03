@@ -167,6 +167,22 @@ module GetMilestoneIDfromPR =
   }
 |}]
 
+module GetProjectColumnsID =
+[%graphql
+{|
+  query getProjectId($owner: String!, $repo: String!, $number: Int!) {
+    repository(owner: $owner, name: $repo) {
+      project(number: $number) {
+        columns(first: 50) {
+          nodes {
+            id
+          }
+        }
+      }
+    }
+  }
+|}]
+
 (* Mutations *)
 
 module MoveCardToColumn =
@@ -251,6 +267,19 @@ module RemoveMilestoneFromPR =
       pullRequest {
         id
       }
+    }
+  }
+|}]
+
+module AddProjectCard =
+[%graphql
+{|
+  mutation addProjectCard($projectColumnId: ID!, $contentId: ID!) {
+    addProjectCard(input: {
+      projectColumnId:$projectColumnId,
+      contentId:$contentId,
+    }) {
+      clientMutationId
     }
   }
 |}]
