@@ -127,7 +127,7 @@ you are interested in hearing about it.
 
 ### As a GitHub App
 
-Note: Installing as a GitHub App is still in an experimental stage
+Note: Installation as a GitHub App is still in an experimental stage
 and you may frequently receive requests to expand permissions.
 
 Note: All the repositories that use the bot and belong to the same
@@ -178,7 +178,7 @@ Once you finish the installation, follow these steps:
 The bot used to be given access to each of your GitHub repositories as a
 regular GitHub user account (**@coqbot**). This installation method is
 still supported for repositories which haven't migrated to the GitHub App
-yet. Here are the steps to follow in addition to the one described in the 
+yet. Here are the steps to follow in addition to those described in the 
 `As GitHub App` section:
 
 - In your GitHub repository:
