@@ -71,8 +71,6 @@ let reflect_pull_request_milestone ~bot_info issue_closer_info =
                 "The milestone of this issue was changed to reflect the one of \
                  the pull request that closed it." )
 
-(* TODO: use GraphQL API *)
-
 let add_rebase_label ~bot_info (issue : issue) =
   let body = Cohttp_lwt.Body.of_string "[ \"needs: rebase\" ]" in
   let uri =
